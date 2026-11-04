@@ -1,8 +1,6 @@
 import subprocess
 import sys
 
-from month_calendar import month_calendar
-
 
 google_script = subprocess.Popen([sys.executable, "quickstart.py"])
 main_screen = subprocess.Popen([sys.executable, "main_screen.py"])
