@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import ttk
 
 from month_calendar import month_calendar
+from macro_track import macro_track
 
 def refresh_dashboard_data(iso_date_string):
     root.stage_title.config(text=f"Records for: {iso_date_string}")
@@ -48,11 +49,16 @@ ttk.Button(mainframe, text="Exit", command=root.destroy).pack(pady=5)
 root.calendar_widget = month_calendar(sidebar, on_date_selected=refresh_dashboard_data)
 root.calendar_widget.pack(fill="x", pady=20)
 
+
+
 root.main_stage = ttk.Frame(root, relief="solid", padding=20)
 root.main_stage.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
         
 root.stage_title = ttk.Label(root.main_stage, text="Select a date...")
 root.stage_title.pack(anchor="w", pady=10)
+
+root.macro_panel = macro_track(root.main_stage)
+root.macro_panel.pack(fill="x", side="bottom", pady=10)
         
 root.data_display = Text(root.main_stage, wrap="word", width=50, height=30, font=("Courier", 11), bg="#f9f9f9", relief="flat")
 root.data_display.pack(anchor="w", pady=10, fill="both", expand=True)
