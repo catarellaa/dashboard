@@ -46,4 +46,67 @@ class day_glance(ttk.Frame):
         self.selected_date += datetime.timedelta(days=1)
         self.update_date_display()
 
+    def fetch_events(self):
+        self.glance_display.config(state="normal")
+        self.glance_display.delete("1.0", tk.END)
+
+
+
+    def _async_fetch_worker(self, date, thread_id):
+        try:
+            start_date = datetime.datetime.combine(date, datetime.time.min)
+            end_date = datetime.datetime.combine(date, datetime.time.max)
+
+            time_min = start_date.isoformat() + "Z"
+            time_max = end_date.isoformat() + "Z"
+
+            events_result = self.service.events().list(
+                calendarId='primary',
+                time_Min=time_min,
+                time_Max=time_max,
+                single_events = True,
+                orderBy='startTime'
+            ).execute()
+
+            events = events_result.get('items', [])
+
+        except Exception as e:
+            self.after(0, self._safe_display_update, f"error fetching evens:\n{str(e)}", thread_id, is_error=True)
+
+
+    def unchanged_render(self, data, thread_id, is_error = False):
+        if thread_id != self.current_thread_id:
+            return
+
+        if is_error:
+            self._write_to_display(data)
+            return
+
+        if not data:
+            self._write_to_display("none")
+            return
+
+        output_lines = []
+        for event in data:
+            start_raw = event['start'].get('dateTime', event['start'].get('date'))
+            summary = event.get('summary', '(No Title)')
+
+            if 'T' in start_raw:
+                clean = start_raw.split('+')[0].split('Z')[0]
+                time_object = datetime.datetime.fromisoformat(clean)
+                time_string = time_object.strftime("%I:%M %p")
+            else:
+                time_string = " "
+
+            output_lines.append(f"• [{time_string}] {summary}")
+
+        self._write_to_display("\n".join(output_lines))
+
+    def _write_to_display(self, text):
+        self.glance_display.config(state="normal")
+        self.glance_display.delete("1.0", tk.END)
+        self.glance_display.insert("1.0", text)
+        self.glance_display.config(state="disabled")
+        
+
 

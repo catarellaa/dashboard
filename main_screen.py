@@ -5,8 +5,26 @@ from month_calendar import month_calendar
 
 def refresh_dashboard_data(iso_date_string):
     root.stage_title.config(text=f"Records for: {iso_date_string}")
-    data = f". Sync complete for: {iso_date_string}\n"
-    root.data_display.config(text=data)
+
+    events = root.calendar_widget.generate_daily_tasks(iso_date_string)
+
+    root.data_display.delete("1.0", "end")
+    if not events:
+        root.data_display.insert("end", "no events found for this day.\n")
+    else:
+        root.data_display.insert("end", "")
+
+        for event in events:
+            start_info = event["start"].get("dateTime", event["start"].get("date"))
+            
+            if "T" in start_info:
+                time_part = start_info.split("T")[1][:5]
+                display_time = f"[{time_part}]"
+            else:
+                display_time = "[all day]"
+                
+            summary = event.get("summary", "(no title)")
+            root.data_display.insert("end", f"{display_time} {summary}\n")
 
 root = Tk()
 root.title("Dashboard")
@@ -36,7 +54,8 @@ root.main_stage.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
 root.stage_title = ttk.Label(root.main_stage, text="Select a date...")
 root.stage_title.pack(anchor="w", pady=10)
         
-root.data_display = ttk.Label(root.main_stage, text="No date loaded.", justify="left")
-root.data_display.pack(anchor="w", pady=10)
+root.data_display = Text(root.main_stage, wrap="word", width=50, height=30, font=("Courier", 11), bg="#f9f9f9", relief="flat")
+root.data_display.pack(anchor="w", pady=10, fill="both", expand=True)
+root.data_display.insert("end", "no date loaded.")
 
 root.mainloop()
