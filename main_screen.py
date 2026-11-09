@@ -1,5 +1,5 @@
 from tkinter import *
-from tkinter import ttk, simpledialog
+from tkinter import ttk
 
 from month_calendar import month_calendar
 from macro_track import macro_track
@@ -30,13 +30,9 @@ def refresh_dashboard_data(iso_date_string):
 
 def change_macro_goals():
     try:
-        p = simpledialog.askfloat("protein goal", "enter new protein goal in grams: ", initialvalue=root.macro_panel.protein)
-        if p is None: return
-        c = simpledialog.askfloat("carb goal", "enter new carb goal in grams: ", initialvalue=root.macro_panel.carb)
-        if c is None: return
-        f = simpledialog.askfloat("fat goal", "enter new fat goal in grams: ", initialvalue=root.macro_panel.fat)
-        if f is None: return
-
+        p = float(entry_protein.get())
+        c = float(entry_carb.get())
+        f = float(entry_fat.get())
         root.macro_panel.update_goals(p, c, f)
         
     except ValueError:
@@ -46,38 +42,71 @@ root = Tk()
 root.title("Dashboard")
 root.geometry("900x900")
 
-root.grid_rowconfigure(0, weight=1)
-root.grid_columnconfigure(0, weight=1)
-root.grid_columnconfigure(1, weight=3)
+notebook = ttk.Notebook(root)
+notebook.pack(expand=True, fill="both")
 
-sidebar = ttk.Frame(root, relief="solid", padding=10)
+calendar_tab = ttk.Frame(notebook)
+macro_tab = ttk.Frame(notebook)
+
+notebook.add(calendar_tab, text="  calendar  ")
+notebook.add(macro_tab, text="  macro tracker  ")
+
+############################################################
+
+calendar_tab.grid_rowconfigure(0, weight=1)
+calendar_tab.grid_columnconfigure(0, weight=1)
+calendar_tab.grid_columnconfigure(1, weight=3)
+
+sidebar = ttk.Frame(calendar_tab, relief="solid", padding=10)
 sidebar.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+#root.main_stage = ttk.Frame(calendar_tab, relief="solid", padding = 20)
         
-lbl_menu = ttk.Label(sidebar, text="Dashboard", font=("Courier", 24, "bold"))
+lbl_menu = ttk.Label(sidebar, text="dashboard", font=("Courier", 24, "bold"))
 lbl_menu.pack(anchor="w", pady=10)
-
-mainframe = ttk.Frame(sidebar, padding=(3, 3, 12, 12))
-mainframe.pack(side="bottom", fill="x")
-#ttk.Label(mainframe, text="Dashboard").pack()
-#ttk.Button(mainframe, text="change goals", command=change_macro_goals().pack(pady=5))
-btn_goals = ttk.Button(mainframe, text="change goals", command=change_macro_goals)
-btn_goals.pack(pady=5)
-ttk.Button(mainframe, text="Exit", command=root.destroy).pack(pady=5)
 
 root.calendar_widget = month_calendar(sidebar, on_date_selected=refresh_dashboard_data)
 root.calendar_widget.pack(fill="x", pady=20)
 
-root.main_stage = ttk.Frame(root, relief="solid", padding=20)
+mainframe = ttk.Frame(sidebar, padding=(3, 3, 12, 12))
+mainframe.pack(side="bottom", fill="x")
+ttk.Button(mainframe, text="exit app", command=root.destroy).pack(pady=5)
+
+############################################################
+
+root.main_stage = ttk.Frame(calendar_tab, relief="solid", padding=20)
 root.main_stage.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
         
-root.stage_title = ttk.Label(root.main_stage, text="Select a date...")
+root.stage_title = ttk.Label(root.main_stage, text="select a date...")
 root.stage_title.pack(anchor="w", pady=10)
-
-root.macro_panel = macro_track(root.main_stage, protein=120, carb=200, fat=65)
-root.macro_panel.pack(fill="x", side="bottom", pady=10)
         
 root.data_display = Text(root.main_stage, wrap="word", width=50, height=30, font=("Courier", 11), bg="#f9f9f9", relief="flat")
 root.data_display.pack(anchor="w", pady=10, fill="both", expand=True)
 root.data_display.insert("end", "no date loaded.")
+
+#############################################################
+
+goals_frame = ttk.LabelFrame(macro_tab, text="update macro goals", padding=15)
+goals_frame.pack(fill="x", padx=20, pady=15)
+
+ttk.Label(goals_frame, text="protein (g):").grid(row=0, column=0, sticky="w", padx=5, pady=5)
+entry_protein = ttk.Entry(goals_frame, width=12)
+#entry_protein.insert(0, "120")
+entry_protein.grid(row=0, column=1, padx=5, pady=5)
+
+ttk.Label(goals_frame, text="carbs (g):").grid(row=1, column=0, sticky="w", padx=5, pady=5)
+entry_carb = ttk.Entry(goals_frame, width=12)
+#entry_carb.insert(0, "200")
+entry_carb.grid(row=1, column=1, padx=5, pady=5)
+
+ttk.Label(goals_frame, text="fats (g):").grid(row=2, column=0, sticky="w", padx=5, pady=5)
+entry_fat = ttk.Entry(goals_frame, width=12)
+#entry_fat.insert(0, "65")
+entry_fat.grid(row=2, column=1, padx=5, pady=5)
+
+btn_submit_goals = ttk.Button(goals_frame, text="submit changes", command=change_macro_goals)
+btn_submit_goals.grid(row=3, column=0, columnspan=2, sticky="ew", pady=(10, 5))
+
+root.macro_panel = macro_track(macro_tab, protein=120, carb=200, fat=65)
+root.macro_panel.pack(fill="x", padx=20, pady=15)
 
 root.mainloop()
